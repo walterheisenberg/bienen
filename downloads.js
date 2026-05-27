@@ -1,124 +1,156 @@
-/* ===== DOWNLOAD FUNKTIONEN ===== */
-/* Ausgelagert aus index.html v0.55 */
+/* ===== DOWNLOAD FUNKTIONEN v0.78 ===== */
 
-/**
- * Gibt die ausgewählten Zeitplan-Einträge zurück
- * @returns {Array} Array mit ausgewählten Schedule-Daten
- */
-function getSelectedScheduleData() {
-    const checkboxes = document.querySelectorAll("#scheduleList input[type='checkbox']");
-    return scheduleData.filter((_, index) => checkboxes[index]?.checked);
+/* ===== EMOJI HELPER ===== */
+function getScheduleEmoji() {
+    const scheduleType = DOM.scheduleType.value;
+    return window.emojiMap && window.emojiMap[scheduleType] ? window.emojiMap[scheduleType] + ' ' : '';
 }
 
-/**
- * Erstellt und lädt eine ICS-Kalenderdatei herunter
- */
+/* ===== ICS DOWNLOAD ===== */
 function downloadICS() {
-    const state = getFormState();
-    const selectedData = getSelectedScheduleData();
+  // ===== DEBUG START =====
+    console.log('=== ICS DOWNLOAD DEBUG ===');
+    console.log('1. window.reminderStates:', window.reminderStates);
+    console.log('2. typeof window.reminderStates:', typeof window.reminderStates);
+    
+    const reminders = getSelectedReminders();
+    console.log('3. getSelectedReminders() Ergebnis:', reminders);
+    console.log('4. reminders.length:', reminders.length);
+    // ===== DEBUG ENDE =====
+  
+    const prefix = DOM.prefix.value.trim();
+    
+    let icsContent = "BEGIN:VCALENDAR\r\n";
+    icsContent += "VERSION:2.0\r\n";
+    icsContent += "PRODID:-//Kalender Generator Bienen//DE\r\n";
+    icsContent += "CALSCALE:GREGORIAN\r\n";
+    icsContent += "METHOD:PUBLISH\r\n";
 
-    if (!selectedData.length) {
-        alert("Keine Einträge ausgewählt.");
-        return;
-    }
+    const checkboxes = DOM.scheduleList.querySelectorAll('.checkbox');
+    
+    scheduleData.forEach((item, index) => {
+        if (checkboxes[index] && checkboxes[index].checked) {
+            const uid = `${formatDateISO(item.taskDate)}-${index}@kalender-generator-bienen.de`;
+            const summary = item.task;
+      const emoji = getScheduleEmoji();
+const description = prefix ? `${emoji}${prefix} - ${item.task}` : `${emoji}${item.task}`;
+      
+   icsContent += "BEGIN:VEVENT\r\n";
+     icsContent += "UID:" + uid + "\r\n";
+            icsContent += "DTSTAMP:" + formatDateISO(new Date()) + "T120000Z\r\n";
+            icsContent += "DTSTART;VALUE=DATE:" + formatDateISO(item.taskDate) + "\r\n";
+            icsContent += "SUMMARY:" + summary + "\r\n";
+            icsContent += "DESCRIPTION:" + description + "\r\n";
 
-    const emoji = emojiMap?.[state.scheduleType?.trim()] || "";
-
- let icsContent = `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Kalender Generator Bienen//DE
-`;
-
-    selectedData.forEach((data, index) => {
-        const date = formatDateISO(data.taskDate);
-        const now = new Date();
-    const dtstamp = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-        const uid = `${date}-${index}@bienenkalender`;
-        const description = (data.additionalText || "").replace(/\n/g, " ");
-
-  icsContent += `BEGIN:VEVENT
-UID:${uid}
-DTSTAMP:${dtstamp}
-DTSTART;VALUE=DATE:${date}
-SUMMARY:${emoji} ${title} - ${data.task}
-DESCRIPTION:${description}
-END:VEVENT
-`;
+      // VALARM direkt NACH DESCRIPTION einfügen (vor END:VEVENT)
+    const alarms = createICSAlarms(reminders, prefix);
+  icsContent += alarms;
+      
+            icsContent += "END:VEVENT\r\n";
+        }
     });
 
-    icsContent += `END:VCALENDAR`;
+    icsContent += "END:VCALENDAR\r\n";
 
-    const blob = new Blob([icsContent], { type: 'text/calendar' });
- const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = downloadFileName + '.ics';
-    a.click();
-
-    URL.revokeObjectURL(url);
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = downloadFileName + '.ics';
+    link.click();
 }
 
-/**
- * Erstellt und lädt eine PDF-Datei herunter
- */
+function getSelectedReminders() {
+    // Erinnerungen aus globaler Variable holen (nicht aus DOM!)
+  const reminders = [];
+    if (window.reminderStates) {
+      const labels = ['-PT1H', '-PT3H', '-P1D', '-P2D', '-P1W'];
+        window.reminderStates.forEach((checked, index) => {
+   if (checked) reminders.push(labels[index]);
+      });
+    }
+  return reminders;
+}
+
+function createICSAlarms(reminders, prefix) {
+    if (reminders.length === 0) return '';
+    
+    const emoji = getScheduleEmoji();
+    const description = prefix ? `${emoji}${prefix} - Erinnerung` : `${emoji}Erinnerung`;
+    
+    return reminders.map(trigger => 
+        "BEGIN:VALARM\r\n" +
+        "ACTION:DISPLAY\r\n" +
+        "DESCRIPTION:" + description + "\r\n" +
+        "TRIGGER:" + trigger + "\r\n" +
+  "END:VALARM\r\n"
+    ).join('');
+}
+
+/* ===== PDF DOWNLOAD ===== */
 function downloadPDF() {
-    // Prüfe ob jsPDF verfügbar ist
-    if (typeof window.jspdf === 'undefined') {
-        alert('❌ Fehler: PDF-Bibliothek konnte nicht geladen werden.\n\nBitte überprüfe deine Internetverbindung.');
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const checkboxes = DOM.scheduleList.querySelectorAll('.checkbox');
+    const selectedTasks = scheduleData.filter((_, index) => 
+        checkboxes[index] && checkboxes[index].checked
+);
+
+    if (selectedTasks.length === 0) {
+ alert('Bitte wählen Sie mindestens einen Termin aus.');
         return;
     }
-
-    const selectedData = getSelectedScheduleData();
-
-    if (!selectedData.length) {
-        alert("Keine Einträge ausgewählt.");
-  return;
-    }
-
-    let xText = PDF_CONFIG.margin;
-    let y = xText * 2;
-    let xTask = PDF_CONFIG.taskOffset;
- const pageWidth = 210;
- const maxWidth = pageWidth - xText * 2 - xTask;
-
-    const { jsPDF } = window.jspdf;
-const doc = new jsPDF('p', 'mm', 'a4');
-
-    const prefix = DOM.prefix.value.trim();
-    const scheduleType = DOM.scheduleType.value;
-    const pdfTitle = `${prefix} - ${scheduleType}-Zeitplan ${year}`;
 
     doc.setFontSize(PDF_CONFIG.titleFontSize);
-    doc.setFont("helvetica", "bold");
-    doc.text(pdfTitle, xText, PDF_CONFIG.margin);
+    doc.text(title, PDF_CONFIG.margin, PDF_CONFIG.margin);
 
-    doc.setFontSize(PDF_CONFIG.textFontSize);
-    doc.setFont("helvetica", "normal");
+    let yPosition = PDF_CONFIG.taskOffset;
 
-    selectedData.forEach(({ taskDate, task, additionalText, dateShort }) => {
-      doc.setFont("helvetica", "bold");
-        doc.text(dateShort + ":", xText, y);
-        doc.text(task, xText + xTask, y);
+    selectedTasks.forEach(item => {
+        if (yPosition > PDF_CONFIG.pageHeight - PDF_CONFIG.margin) {
+    doc.addPage();
+  yPosition = PDF_CONFIG.margin;
+   }
 
-      if (additionalText) {
-doc.setFont("helvetica", "normal");
-            const lines = doc.splitTextToSize(additionalText, maxWidth);
-    doc.text(lines, xText + xTask, y + 5);
-         y += lines.length * PDF_CONFIG.lineSpacing;
+        doc.setFontSize(PDF_CONFIG.textFontSize);
+      doc.setFont(undefined, 'bold');
+    doc.text(item.dateFormatted, PDF_CONFIG.margin, yPosition);
+        yPosition += PDF_CONFIG.lineSpacing;
+
+        doc.setFont(undefined, 'normal');
+    const taskLines = doc.splitTextToSize(
+     item.task, 
+      doc.internal.pageSize.width - 2 * PDF_CONFIG.margin
+);
+    
+        taskLines.forEach(line => {
+if (yPosition > PDF_CONFIG.pageHeight - PDF_CONFIG.margin) {
+doc.addPage();
+  yPosition = PDF_CONFIG.margin;
+            }
+            doc.text(line, PDF_CONFIG.margin, yPosition);
+ yPosition += PDF_CONFIG.lineSpacing;
+ });
+
+        if (item.additionalText) {
+      doc.setFont(undefined, 'italic');
+  const additionalLines = doc.splitTextToSize(
+      item.additionalText, 
+      doc.internal.pageSize.width - 2 * PDF_CONFIG.margin
+     );
+            
+     additionalLines.forEach(line => {
+        if (yPosition > PDF_CONFIG.pageHeight - PDF_CONFIG.margin) {
+          doc.addPage();
+          yPosition = PDF_CONFIG.margin;
+    }
+                doc.text(line, PDF_CONFIG.margin, yPosition);
+     yPosition += PDF_CONFIG.lineSpacing;
+            });
         }
 
-     y += (xText / PDF_CONFIG.sectionSpacing);
-
-        if (y > PDF_CONFIG.pageHeight) {
-      doc.addPage();
-            y = PDF_CONFIG.margin;
-     }
+        yPosition += PDF_CONFIG.lineSpacing * PDF_CONFIG.sectionSpacing;
     });
 
-  doc.setFont("helvetica", "normal");
-    const creationDate = `Erstellt am: ${new Date().toLocaleDateString('de-DE')} - Version: ${Version}`;
-    doc.text(creationDate, xText, y);
-
-    doc.save(`${downloadFileName}.pdf`);
+    doc.save(downloadFileName + '.pdf');
 }

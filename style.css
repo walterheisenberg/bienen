@@ -1,133 +1,257 @@
-/* ===== KALENDER GENERATOR BIENEN - STYLES v0.44 ===== */
+/* =========================================================
+ *  KALENDER GENERATOR BIENEN - CSS v2 (modernisiert)
+ *  gleiche Optik, bessere Struktur & Wartbarkeit
+ = *======================================================== */
 
-/* ===== CSS-VARIABLEN (Optimierung #22) ===== */
+/* ===== DESIGN TOKENS ===== */
 :root {
+
   /* Farben */
-  --primary-color: #007BFF;
+  --primary: #007bff;
   --primary-hover: #0056b3;
-  --accent-color: #f0a500;
+
+  --accent: #f0a500;
   --accent-hover: #d89400;
-  --bg-light: #f5f5f5;
-  --bg-white: #ffffff;
-  --bg-item: #f0f0f0;
-  --text-dark: #333;
-  --text-light: #777;
-  --border-color: #ccc;
-  --error-color: #dc3545;
-  
-  /* Abstände */
-  --spacing-xs: 5px;
-  --spacing-sm: 10px;
-  --spacing-md: 15px;
-  --spacing-lg: 20px;
-  --spacing-xl: 25px;
-  
-  /* Größen */
-  --border-radius: 5px;
-  --border-radius-lg: 8px;
-  --max-width: 600px;
-  --font-size-base: 1.2rem;
+
+  --bg: #f5f5f5;
+  --surface: #ffffff;
+  --surface-alt: #f0f0f0;
+
+  --text: #333;
+  --text-muted: #777;
+
+  --border: #ccc;
+
+  /* Status */
+  --warning-bg: #fff3cd;
+  --warning-border: #ffc107;
+  --warning-text: #856404;
+
+  --info-bg: #d1ecf1;
+  --info-border: #0c5460;
+  --info-text: #0c5460;
+
+  --success: #28a745;
+  --success-hover: #218838;
+
+  --expert: #6c757d;
+  --expert-hover: #5a6268;
+
+  /* Button States */
+  --btn-inactive: #ddd;
+  --btn-inactive-hover: #ccc;
+
+  /* Reminder Colors */
+  --reminder-bg: #e7f3ff;
+  --reminder-border: #b3d9ff;
+
+  /* Hover & Focus */
+  --hover-bg: rgba(0,123,255,0.1);
+  --input-focus-bg: #f8f9fa;
+
+  /* Spacing */
+  --xs: 5px;
+  --xs-plus: 8px;
+  --sm: 10px;
+  --sm-plus: 12px;
+  --md: 15px;
+  --lg: 20px;
+
+  /* Radius */
+  --r-xs: 4px;
+  --r-sm: 5px;
+  --r-md: 8px;
+
+  /* Layout */
+  --body-width: 97%;
+  --max: 600px;
+  --wheel-size: 200px;
+
+  /* Typography */
+  --fs-xs: 0.6em;
+--fs-sm: 0.9rem;
+  --fs: 1rem;
+  --fs-md: 1.2rem;
+  --fs-lg: 1.5rem;
+  --lh: 1.6;
+  --text-spacing: 0.3em;
+
+  /* Input Sizes */
+  --input-min-width: 150px;
+  --input-date-width: 180px;
+  --input-text-width: 300px;
+  --input-text-mobile: 200px;
+
+  /* Borders */
+  --border-thick: 2px;
+
+  /* Effects */
+  --t-fast: 0.2s ease;
+  --t: 0.3s ease;
+
+  --shadow: 0 2px 4px rgba(0,0,0,0.1);
+  --shadow-hover: 0 2px 5px rgba(0,0,0,0.2);
+  --shadow-focus: 0 0 0 3px var(--focus);
+
+  /* FX */
+  --focus: rgba(0,123,255,0.25);
+  --focus-width: 3px;
+  --opacity-disabled: 0.7;
+
+  /* Breakpoints */
+  --breakpoint-mobile: 768px;
 }
 
-/* ===== GLOBAL RESET (Optimierung #26) ===== */
-*, *::before, *::after {
+/* ===== RESET ===== */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-/* ===== BODY & LAYOUT ===== */
+/* ===== MODERN ENHANCEMENTS ===== */
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ===== UTILITIES ===== */
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+
+.justify-center { justify-content: center; }
+
+.gap-sm { gap: var(--sm); }
+
+.grow { flex-grow: 1; }
+
+.hidden { display: none !important; }
+
+.mb-md { margin-bottom: var(--md); }
+
+.text-center { text-align: center; }
+
+.w-auto { width: auto; }
+
+/* ===== BASE LAYOUT ===== */
+
 body {
-  font-family: Arial, sans-serif;
-  margin: var(--spacing-sm);
+  width: var(--body-width);
+  margin: var(--sm);
   padding: 0;
-  line-height: 1.6;
-  background-color: var(--bg-light);
-  width: 97%;
-  font-size: var(--font-size-base);
+
+  font-family: Arial, sans-serif;
+  font-size: clamp(1rem, 2vw, var(--fs-md));  /* MODERN: Responsive Typography */
+  line-height: var(--lh);
+
+  background: var(--bg);
+  color: var(--text);
 }
 
 h1 {
-text-align: center;
-  font-size: 1.5rem;
+  font-size: clamp(1.2rem, 3vw, var(--fs-lg));  /* MODERN: Responsive Typography */
+  text-align: center;
+  margin: var(--xs) 0;
 }
 
+h2 {
+  font-size: clamp(1rem, 2.5vw, var(--fs-md));/* MODERN: Responsive Typography */
+  text-align: center;
+  margin: var(--xs) 0;
+}
+
+/* ===== HEADER ===== */
+
 .header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--spacing-sm);
   flex-wrap: nowrap;
+  gap: var(--xs);
 }
 
 .version {
-font-size: 0.6em;
-  color: var(--text-light);
-  margin-left: 8px;
-  font-weight: normal;
+  margin-left: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
 }
 
-.version-group {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
+/* ===== CONTAINER ===== */
 
-/* ===== FORM & CONTAINER ===== */
-form, .zeitplan {
-  max-width: var(--max-width);
-  width: 97%;
-  margin: var(--spacing-lg) auto;
-  background: var(--bg-white);
-  padding: var(--spacing-md);
-  border-radius: var(--border-radius-lg);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+form,
+  .zeitplan {
+    width: var(--body-width);
+    max-width: var(--max);
+    margin: var(--lg) auto;
+    padding: var(--md);
 
-.button-row {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-bottom: 20px;
-}
+    background: var(--surface);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow);
+  }
 
-/* ===== FORM ELEMENTS (Optimierung #24) ===== */
-label {
-  margin-top: var(--spacing-sm);
-  display: block;
-}
+  .button-row {
+    margin-bottom: var(--md);
+  }
 
-input, 
-select, 
+  /* ===== TYPOGRAPHY FIXES ===== */
+
+  .zeitplan p {
+    margin: var(--xs) 0;
+  }
+
+  .zeitplan h3 {
+    margin: var(--xs) 0;
+  }
+
+  /* ===== FORM ===== */
+
+  label {
+    display: block;
+    margin-top: var(--sm);
+  }
+
+  input,
+select,
 button {
   width: 100%;
-  margin: var(--spacing-xs) 0;
-  padding: var(--spacing-sm);
-  font-size: var(--font-size-base);
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border-color);
+  margin: var(--xs) 0;
+  padding: var(--sm);
+
+  font-size: var(--fs-md);
+
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
 }
 
-/* Button Styles */
+/* ===== BUTTONS ===== */
+
 button {
-  background-color: var(--primary-color);
-  color: white;
-  cursor: pointer;
   border: none;
-  transition: background-color 0.2s ease;
+  cursor: pointer;
+  background: var(--primary);
+  color: white;
+  transition: background var(--t-fast);
 }
 
 button:hover {
-  background-color: var(--primary-hover);
+  background: var(--primary-hover);
+}
+
+/* MODERN: Focus nur bei Tastatur-Navigation */
+button:focus-visible {
+  outline: var(--border-thick) solid var(--primary);
+  outline-offset: 2px;
 }
 
 .impressum-btn {
-  background: none;
-  color: var(--primary-color);
-  padding: 0;
-  font-size: 0.9em;
-  border: none;
-  cursor: pointer;
   width: auto;
+  padding: 0;
+  background: none;
+  color: var(--primary);
+  font-size: var(--fs-sm);
 }
 
 .impressum-btn:hover {
@@ -135,75 +259,106 @@ button:hover {
   background: none;
 }
 
-/* ===== LISTS ===== */
+/* ===== LIST SYSTEM (modernisiert) ===== */
+
 ul {
-  list-style-type: none;
-  padding-left: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
+/* Basis-Item */
 li {
-  background-color: var(--bg-item);
-  margin-bottom: var(--spacing-sm);
-  padding: var(--spacing-sm);
-  border-radius: var(--border-radius);
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  width: 100%;
+  padding: var(--sm);
+  margin-bottom: var(--sm);
+
+  background: var(--surface-alt);
+  border-radius: var(--r-sm);
 }
 
-li strong::after {
-  content: " ";
-  display: inline-block;  /* Damit Flex es nicht ignoriert */
-  width: 0.3em;
+/* Preview kompakt - MODERN: gap statt margin */
+#previewList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--xs);  /* MODERN: gap statt margin-bottom */
 }
 
-.checkbox {
-  width: var(--spacing-xl);
-  height: var(--spacing-xl);
-  margin-right: var(--spacing-lg);
-}
-
-/* Vorschau-Liste ohne Hintergrund (Optimierung #21 - zusammengeführt) */
 #previewList li {
   background: none;
-  padding: var(--spacing-xs) 0;
-  margin-bottom: var(--spacing-xs);
+  padding: var(--xs) 0;
+  margin-bottom: 0;  /* MODERN: gap übernimmt Spacing */
 }
 
-/* Task-Einrückung bei Checkboxen */
-.task-indent {
-  margin-left: var(--spacing-xl);
-}
-
-/* ===== DREHSCHEIBE ===== */
-.date-selection-container {
-  margin-top: var(--spacing-lg);
-}
-
-/* Toggle Buttons */
-.toggle {
+/* Schedule Layout stabil - MODERN: gap */
+#scheduleList {
   display: flex;
-  margin-bottom: var(--spacing-lg);
-  gap: var(--spacing-sm);
+  flex-direction: column;
+  gap: var(--sm);  /* MODERN: gap statt margin-bottom */
+}
+
+#scheduleList li {
+  flex-wrap: wrap;
+  gap: var(--sm);
+  padding: var(--xs-plus) 0;
+  font-size: var(--fs);
+  margin-bottom: 0;  /* MODERN: gap übernimmt Spacing */
+}
+
+/* Text Trennung */
+li strong::after {
+  content: " ";
+  display: inline-block;
+  width: var(--text-spacing);
+}
+
+/* Checkbox */
+.checkbox {
+  width: var(--lg);
+  height: var(--lg);
+  margin-left: var(--sm);
+  margin-right: var(--xs);
+}
+
+/* MODERN: Focus nur bei Tastatur */
+.checkbox:focus-visible {
+  outline: var(--border-thick) solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Task Layout */
+.task-indent {
+  display: flex;
+  align-items: center;
+  gap: var(--xs);
+  flex: 1;
+}
+
+/* ===== WHEEL ===== */
+
+.date-selection-container {
+  margin-top: var(--lg);
+}
+
+.toggle {
+  margin-bottom: var(--lg);
+  display: flex;
+  gap: 0;  /* MODERN: explizit für aneinander liegende Buttons */
 }
 
 .toggle button {
   flex: 1;
-  padding: 12px;
-  background: #ddd;
-  cursor: pointer;
-  border-radius: var(--border-radius);
-  font-size: 16px;
-  transition: background-color 0.2s ease;
+  padding: var(--sm-plus);
+  background: var(--btn-inactive);
 }
 
 .toggle button:hover {
-  background: #ccc;
+  background: var(--btn-inactive-hover);
 }
 
 .toggle .active {
-  background: var(--accent-color);
+  background: var(--accent);
   color: white;
 }
 
@@ -211,17 +366,17 @@ li strong::after {
   background: var(--accent-hover);
 }
 
-/* Wheel Container (Optimierung #21 - nur 1x definiert) */
 .wheel-container {
   position: relative;
-  width: 200px;
-  height: 200px;
-  margin: var(--spacing-lg) auto;
+  width: var(--wheel-size);
+  height: var(--wheel-size);
+  aspect-ratio: 1 / 1;  /* MODERN: aspect-ratio für perfektes Quadrat */
+  margin: var(--lg) auto;
 }
 
 canvas {
-  touch-action: none;
   cursor: grab;
+  touch-action: none;
 }
 
 canvas:active {
@@ -229,148 +384,183 @@ canvas:active {
 }
 
 #wheelDateDisplay {
-  margin-top: var(--spacing-md);
+  margin-top: var(--md);
+  font-size: var(--fs);
   font-weight: bold;
-  font-size: 16px;
 }
 
 .wheel-buttons {
-  display: flex;
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-md);
-  justify-content: center;
+  margin-top: var(--md);
 }
 
 .wheel-buttons button {
-  padding: var(--spacing-sm) var(--spacing-lg);
-  background: var(--accent-color);
-  color: white;
-  border: none;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  font-size: 14px;
   width: auto;
-  transition: background-color 0.2s ease;
+  padding: var(--sm) var(--lg);
+  background: var(--accent);
+  font-size: var(--fs-sm);
 }
 
 .wheel-buttons button:hover {
   background: var(--accent-hover);
 }
 
-/* ===== UTILITY CLASSES ===== */
-.hidden {
-  display: none !important;
+/* ===== INFO BOXES ===== */
+
+.info-box {
+  margin: var(--xs-plus) 0;
+  padding: var(--sm);
+  border-radius: var(--r-sm);
 }
 
-/* ===== EXPERTENMODUS STYLES ===== */
+.info-box-warning {
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  color: var(--warning-text);
+}
 
-/* Expertenmodus Button */
+.info-box-info {
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  color: var(--info-text);
+}
+
+/* ===== EXPERT MODE ===== */
+
 #expertModeBtn {
-background-color: #6c757d;
-color: white;
-border: none;
-padding: 8px 16px;
-border-radius: 5px;
-cursor: pointer;
-font-size: 14px;
-transition: all 0.3s ease;
+  padding: var(--xs-plus) var(--md);
+  background: var(--expert);
+  font-size: var(--fs-sm);
+  transition: background var(--t), transform var(--t), box-shadow var(--t);
 }
 
 #expertModeBtn:hover {
-background-color: #5a6268;
-transform: translateY(-1px);
-box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  background: var(--expert-hover);
+  box-shadow: var(--shadow-hover);
 }
 
 #expertModeBtn.active {
-background-color: #28a745;
+  background: var(--success);
 }
 
 #expertModeBtn.active:hover {
-background-color: #218838;
+  background: var(--success-hover);
 }
 
-/* Eingabefelder im Expertenmodus */
 .expert-input {
-  border: 2px solid #007bff;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 14px;
-  font-family: inherit;
-  background-color: #fff;
-  transition: all 0.2s ease;
   width: auto;
-  min-width: 150px;
+  min-width: var(--input-min-width);
+  padding: var(--xs) var(--xs-plus);
+
+  border: var(--border-thick) solid var(--primary);
+  border-radius: var(--r-xs);
+
+  font-size: var(--fs-sm);
+  font-family: inherit;
+
+  transition: all var(--t-fast);
 }
 
+.expert-input:hover,
 .expert-input:focus {
+  border-color: var(--primary-hover);
+}
+
+/* MODERN: Focus nur bei Tastatur */
+.expert-input:focus-visible {
   outline: none;
-  border-color: #0056b3;
-  box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
-  background-color: #f8f9fa;
+  box-shadow: var(--shadow-focus);
+  background: var(--input-focus-bg);
 }
 
-.expert-input:hover {
-  border-color: #0056b3;
-}
-
-/* Datum-Eingabefeld */
 input.expert-input[type="date"] {
-  min-width: 180px;
-  cursor: pointer;
+  min-width: var(--input-date-width);
 }
 
-/* Text-Eingabefeld für Aufgaben */
 input.expert-input[type="text"] {
-  min-width: 300px;
-  flex-grow: 1;
+  min-width: var(--input-text-width);
 }
 
-/* Listeneinträge im Expertenmodus */
-#scheduleList li {
-display: flex;
-align-items: center;
-gap: 10px;
-padding: 8px 0;
-flex-wrap: wrap;
+/* ===== REMINDERS ===== */
+
+.reminder-section {
+  margin: var(--lg) 0;
+  padding: var(--md);
+
+  background: var(--reminder-bg);
+  border: 1px solid var(--reminder-border);
+  border-radius: var(--r-md);
 }
 
-/* Strong-Element (Datum) im Expertenmodus */
-#scheduleList li strong {
-display: inline-flex;
-align-items: center;
+.reminder-section h3 {
+  margin-top: 0;
+  font-size: var(--fs-md);
+  color: var(--primary);
 }
 
-/* Span-Element (Aufgabe) im Expertenmodus */
-#scheduleList li .task-indent {
-flex-grow: 1;
-display: inline-flex;
-align-items: center;
+.reminder-section p {
+  margin-bottom: var(--xs);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
 }
 
-/* Checkbox Styling */
-.checkbox {
-  margin-right: 10px;
+/* MODERN: gap statt margin-bottom */
+.reminder-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0;  /* Labels liegen direkt aneinander */
+}
+
+.reminder-options label {
+  display: flex;
+  align-items: center;
+  padding: 0 0 0 var(--xs);
+  margin-bottom: 0;
+  border-radius: var(--r-sm);
   cursor: pointer;
-  width: 18px;
-  height: 18px;
+  transition: background var(--t-fast);
 }
 
-/* Responsive Anpassungen */
+.reminder-options label:hover:not(.disabled) {
+  background: var(--hover-bg);
+}
+
+.reminder-options label.disabled {
+  opacity: var(--opacity-disabled);
+  cursor: default;
+}
+
+.reminder-options input[type="checkbox"] {
+  width: var(--lg);
+  height: var(--lg);
+  margin-right: var(--sm);
+}
+
+/* MODERN: Focus nur bei Tastatur */
+.reminder-options input[type="checkbox"]:focus-visible {
+  outline: var(--border-thick) solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ===== RESPONSIVE ===== */
+
 @media (max-width: 768px) {
+
   #expertModeBtn {
-  float: none !important;
-  display: block;
-  width: 100%;
-  margin-bottom: 10px;
+ width: 100%;
+    margin-bottom: var(--sm);
   }
 
   .expert-input[type="text"] {
-    min-width: 200px;
+    min-width: var(--input-text-mobile);
   }
 
   #scheduleList li {
-  flex-direction: column;
-  align-items: flex-start;
+    display: flex;
+    align-items: center;
+    gap: var(--sm);
+  }
+
+  .reminder-section {
+    padding: var(--sm);
   }
 }
