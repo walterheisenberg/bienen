@@ -41,7 +41,7 @@
   --border-light:#ddd;
 
   --xs:5px; --xs-plus:8px; --sm:10px; --sm-plus:12px;
-  --md:15px; --lg:20px;
+  --md:15px; --lg:20px; --very-lg:36px;
 
   --r-xs:4px; --r-sm:5px; --r-md:8px;
 
@@ -244,6 +244,7 @@ font-weight:600; text-align:center; color:var(--text);
 }
 
 /* ===== EXPERT MODE ===== */
+
 #expertModeBtn{
 padding:var(--xs-plus) var(--md);
 background:var(--expert); font-size:var(--fs-sm);
@@ -367,4 +368,120 @@ background:var(--success-hover);
 
 .download-buttons .action-btn {
   flex: 1;
+}
+
+/* ===== BUTTON CONTAINER ===== */
+.action-buttons{
+  display:flex;
+  gap:var(--sm);
+  align-items:stretch;
+}
+
+/* ===== BASE BUTTON ===== */
+.tool-btn{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:var(--xs-plus);
+
+  min-height:var(--very-lg); /* 🔥 wichtig für Mobile */
+  padding:var(--xs-plus) var(--md);
+
+  font-size:var(--fs-sm);
+  line-height:1;
+
+  border:none;
+  border-radius:var(--r-sm);
+  cursor:pointer;
+
+  transition:all var(--t-fast);
+}
+
+/* Icon stabilisieren */
+.tool-btn .icon{
+  display:inline-flex;
+  line-height:1;
+}
+
+/* Label stabil */
+.tool-btn .label{
+  line-height:1;
+}
+
+/* ===== VARIANTEN ===== */
+
+/* Expertenmodus */
+.expert-btn{
+  background:var(--expert);
+  color:#fff;
+}
+
+.expert-btn:hover{
+  background:var(--expert-hover);
+}
+
+.expert-btn.active{
+  background:var(--success);
+}
+
+/* Beschreibung */
+.desc-btn{
+  background:var(--accent);
+  color:#fff;
+}
+
+.desc-btn:hover{
+  background:var(--accent-hover);
+}
+
+.desc-btn.active{
+  background:var(--success);
+}
+
+.desc-btn.active:hover{
+  background:var(--success-hover);
+}
+
+.info-container{
+  max-width: var(--max);
+  margin: var(--lg) auto;
+  background: var(--surface);
+  padding: var(--md);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+}
+
+.info-container h1{
+  text-align:center;
+  margin-bottom: var(--md);
+}
+
+.github-link{
+  display:block;
+  margin-top: var(--md);
+  padding: var(--sm);
+  background: var(--surface-alt);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  text-decoration:none;
+}
+
+.github-link:hover{
+  background: var(--hover-bg);
+}
+
+.info-button{
+  display:block;
+  margin-top: var(--md);
+  padding: var(--sm);
+  text-align:center;
+  background: var(--primary);
+  color:#fff;
+  border-radius: var(--r-sm);
+  text-decoration:none;
+}
+
+.info-button:hover{
+  background: var(--primary-hover);
 }

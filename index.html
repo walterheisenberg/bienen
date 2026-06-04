@@ -13,7 +13,7 @@ Feedback ist immer willkomen. -->
 
   <script>
  // Version
-    const Version = "0.88";
+    const Version = "0.89";
  </script>
 
     <meta charset="UTF-8">
@@ -122,22 +122,25 @@ Feedback ist immer willkomen. -->
     <div id="zeitplan" class="zeitplan hidden">
     <div class="text-center mb-md">
         <button type="button" onclick="goBackToPreview()" class="mb-md">⬅️ Zurück</button>
-        <!--<button type="button" id="expertModeBtn" onclick="toggleExpertMode()">🔧 Expertenmodus</button>
-        <button type="button" id="toggleDescriptionsBtn" onclick="toggleDescriptionsMode()"> 📝 Beschreibungen anzeigen</button>-->
         <div class="action-buttons">
-    <button type="button"
-            id="expertModeBtn"
-            class="action-btn"
-            onclick="toggleExpertMode()">
-        🔧 Expertenmodus
-    </button>
 
-    <button type="button"
-            id="toggleDescriptionsBtn"
-            class="action-btn"
-            onclick="toggleDescriptionsMode()">
-        📝 Beschreibungen an
-    </button>
+          <button type="button"
+                  class="tool-btn expert-btn"
+                  id="expertModeBtn"
+                  onclick="toggleExpertMode()">
+
+            <span class="icon">🔧</span>
+            <span class="label">Expertenmodus</span>
+          </button>
+
+          <button type="button"
+                  class="tool-btn desc-btn"
+                  id="toggleDescriptionsBtn"
+                  onclick="toggleDescriptionsMode()">
+
+            <span class="icon">📝</span>
+            <span class="label">Beschreibungen an</span>
+          </button>
 </div>
     </div>
     <div id="expertModeHint" class="info-box info-box-info hidden" style="font-size: var(--fs-sm);">
@@ -328,9 +331,11 @@ Feedback ist immer willkomen. -->
     descriptionsVisible = !descriptionsVisible;
 
     const btn = document.getElementById('toggleDescriptionsBtn');
-    btn.textContent = descriptionsVisible
-        ? '📝 Beschreibungen aus'
-        : '📝 Beschreibungen an';
+const label = btn.querySelector('.label');
+
+label.textContent = descriptionsVisible
+  ? 'Beschreibungen aus'
+  : 'Beschreibungen an';
 
     btn.classList.toggle('active', descriptionsVisible);
 
@@ -342,17 +347,19 @@ Feedback ist immer willkomen. -->
     function toggleExpertMode() {
     expertModeActive = !expertModeActive;
 
+    const btn = document.getElementById('expertModeBtn');
+    const label = btn.querySelector('.label');
+
     if (expertModeActive) {
-        DOM.expertModeBtn.textContent = '✅ Expertenmodus aktiv';
-        DOM.expertModeBtn.classList.add('active');
+        label.textContent = 'Expertenmodus aktiv';
+        btn.classList.add('active');
         DOM.expertModeHint.classList.remove('hidden');
     } else {
-        DOM.expertModeBtn.textContent = '🔧 Expertenmodus';
-        DOM.expertModeBtn.classList.remove('active');
+        label.textContent = 'Expertenmodus';
+        btn.classList.remove('active');
         DOM.expertModeHint.classList.add('hidden');
     }
 
-    // 🔥 IMMER neu rendern – das ist der Schlüssel
     renderList('scheduleList', scheduleData, true, taskCheckboxStates);
 }
 
