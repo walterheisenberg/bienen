@@ -13,7 +13,7 @@ Feedback ist immer willkomen. -->
 
   <script>
  // Version
-    const Version = "0.87";
+    const Version = "0.88";
  </script>
 
     <meta charset="UTF-8">
@@ -34,7 +34,7 @@ Feedback ist immer willkomen. -->
     <link rel="stylesheet" href="css/style.css">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-    
+
     <!-- Ausgelagerte Funktionen laden -->
     <script src="modules/dateUtils.js"></script>
     <script src="modules/schedule.js"></script>
@@ -136,7 +136,7 @@ Feedback ist immer willkomen. -->
             id="toggleDescriptionsBtn"
             class="action-btn"
             onclick="toggleDescriptionsMode()">
-        📝 Beschreibungen anzeigen
+        📝 Beschreibungen an
     </button>
 </div>
     </div>
@@ -247,7 +247,7 @@ Feedback ist immer willkomen. -->
         populateSteps();
         DOM.steps.value = '0';
         DOM.startDate.value = '2025-06-01';
-  
+
     onStepSelected();
       }
 }
@@ -266,7 +266,7 @@ Feedback ist immer willkomen. -->
     /* ===== ZEITPLAN GENERIERUNG ===== */
     function generateSchedule() {
         const state = getFormState();
-        
+
   let selectedDate;
         if (DOM.calendarMode.classList.contains('hidden')) {
    selectedDate = getWheelDate();
@@ -291,6 +291,8 @@ Feedback ist immer willkomen. -->
         renderList('previewList', scheduleData, false, taskCheckboxStates);
    DOM.previewSection.classList.remove('hidden');
     DOM.zeitplan.classList.add('hidden');
+
+    updateNoPrefixWarning(selectedDate);
     }
 
 
@@ -299,10 +301,10 @@ Feedback ist immer willkomen. -->
     function showFinalSchedule() {
         // Checkbox-Zustände initialisieren (alle auf true)
     taskCheckboxStates = scheduleData.map(() => true);
-  
+
         renderList('scheduleList', scheduleData, true, taskCheckboxStates);
         DOM.zeitplanTitle2.textContent = DOM.zeitplanTitle.textContent;
-        
+
         // Erinnerungs-Sektion anzeigen
   DOM.reminderSection.classList.remove('hidden');
 
@@ -314,9 +316,9 @@ Feedback ist immer willkomen. -->
   window.reminderStates[index] = this.checked;
   });
 });
-        
+
  updateReminderSectionVisibility();
-     
+
  DOM.previewSection.classList.add('hidden');
  DOM.zeitplan.classList.remove('hidden');
     }
@@ -327,8 +329,8 @@ Feedback ist immer willkomen. -->
 
     const btn = document.getElementById('toggleDescriptionsBtn');
     btn.textContent = descriptionsVisible
-        ? '📝 Beschreibungen ausblenden'
-        : '📝 Beschreibungen anzeigen';
+        ? '📝 Beschreibungen aus'
+        : '📝 Beschreibungen an';
 
     btn.classList.toggle('active', descriptionsVisible);
 
@@ -430,13 +432,13 @@ function makeDescriptionEditable(descEl, index) {
  input.type = 'date';
      input.value = isoDate;
     input.className = 'expert-input expert-date';
-   
+
     // Blur-Event: Wenn man rausklickt ohne zu ändern
      input.addEventListener('blur', function() {
   // Prüfen ob Datum geändert wurde
     const newDate = new Date(this.value);
  const oldDate = scheduleData[index].taskDate;
-    
+
    if (newDate.getTime() !== oldDate.getTime()) {
       // Datum wurde geändert
      scheduleData[index].taskDate = newDate;
@@ -444,7 +446,7 @@ function makeDescriptionEditable(descEl, index) {
   scheduleData[index].dateShort = formatDateShort(newDate);
        DOM.dateChangedWarning.classList.remove('hidden');
   }
- 
+
   // Zurück zu Strong-Element
         const newStrong = document.createElement('strong');
        newStrong.textContent = scheduleData[index].dateFormatted;
@@ -452,13 +454,13 @@ function makeDescriptionEditable(descEl, index) {
   newStrong.onclick = () => makeDateEditable(newStrong, index);
      this.replaceWith(newStrong);
    });
-    
+
  input.addEventListener('keydown', function(e) {
 if (e.key === 'Enter') {
     this.blur();
   }
     });
- 
+
  strong.replaceWith(input);
      input.focus();
  }
@@ -473,17 +475,17 @@ input.type = 'text';
   input.style.flex = '1';
 input.style.minWidth = '0';
 input.style.boxSizing = 'border-box';
-        
+
  input.addEventListener('blur', function() {
    scheduleData[index].task = this.value;
-    
+
   const newTaskSpan = document.createElement('span');
     newTaskSpan.textContent = this.value;
      newTaskSpan.style.cursor = 'pointer';
    newTaskSpan.onclick = () => makeTaskEditable(newTaskSpan, index);
 this.replaceWith(newTaskSpan);
    });
-        
+
   input.addEventListener('keydown', function(e) {
      if (e.key === 'Enter') {
  this.blur();
@@ -510,19 +512,29 @@ expertModeActive = false;
     DOM.expertModeBtn.textContent = '🔧 Expertenmodus';
     DOM.expertModeBtn.classList.remove('active');
         }
-        
+
 // Warnungen ausblenden
         DOM.expertModeHint.classList.add('hidden');
     DOM.dateChangedWarning.classList.add('hidden');
-        
+
   // Zeitplan neu generieren, um Original-Daten wiederherzustellen
   renderList('scheduleList', scheduleData, true, taskCheckboxStates);
-   
+
   DOM.generalForm.classList.remove('hidden');
       DOM.previewSection.classList.remove('hidden');
         DOM.zeitplan.classList.add('hidden');
    window.scrollTo(0, 0);
   }
+
+  function updateNoPrefixWarning(selectedDate) {
+  const prefix = DOM.prefix.value.trim();
+
+  if (!prefix && selectedDate) {
+    DOM.noPrefixWarning.classList.remove('hidden');
+  } else {
+    DOM.noPrefixWarning.classList.add('hidden');
+  }
+}
 
     /* ===== STATE MANAGEMENT ===== */
     function saveFormState() {
@@ -534,23 +546,23 @@ expertModeActive = false;
      angle: getWheelAngle(),
   isWheelMode: !DOM.wheelMode.classList.contains('hidden')
  };
-   
+
   sessionStorage.setItem('formState', JSON.stringify(state));
     }
 
     function restoreFormState() {
         const savedState = sessionStorage.getItem('formState');
   if (!savedState) return;
-   
+
     const state = JSON.parse(savedState);
 
         DOM.prefix.value = state.prefix || '';
-        
+
      if (state.scheduleType) {
  DOM.scheduleType.value = state.scheduleType;
     populateSteps();
 }
-     
+
     if (state.steps) {
   DOM.steps.value = state.steps;
         }
@@ -558,13 +570,13 @@ expertModeActive = false;
      if (state.startDate) {
    DOM.startDate.value = state.startDate;
   }
- 
+
  if (state.angle !== undefined) {
      setWheelAngle(state.angle);
       drawWheel();
           updateWheelCalculation();
         }
- 
+
    if (state.isWheelMode) {
     switchDateMode('wheel');
       }
