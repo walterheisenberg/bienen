@@ -1,0 +1,594 @@
+<!-- Der Code ist unter CC-BY-NC-SA (cc-by-nc-sa-3.0-de) veröffentlicht
+https://creativecommons.org/licenses/by-nc-sa/3.0/de/legalcode
+
+Er wurde zum Teil von ChatGPT und Perplexity.ai erstellt. Die Prompts und Änderungen stammen von
+Ralf Lindlein
+lindlein@gmx.com
+
+Feedback ist immer willkomen. -->
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+
+  <script>
+ // Version
+    const Version = "0.88";
+ </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalender Generator Bienen</title>
+
+    <!-- Zeitpläne laden -->
+    <script src="modules/plan.js"></script>
+
+    <!-- sicherstellen, dass emojiMap global verfügbar ist -->
+    <script>
+        if (typeof emojiMap !== "undefined") {
+     window.emojiMap = emojiMap;
+ }
+    </script>
+
+    <!-- CSS laden -->
+    <link rel="stylesheet" href="css/style.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+
+    <!-- Ausgelagerte Funktionen laden -->
+    <script src="modules/dateUtils.js"></script>
+    <script src="modules/schedule.js"></script>
+    <script src="modules/ui.js"></script>
+
+    <script src="modules/wheel.js"></script>
+    <script src="modules/downloads.js"></script>
+
+    <script src="modules/app.js"></script>
+</head>
+
+<body>
+    <h1 class="header">
+ <span>Kalender Generator Bienen</span>
+ <span class="version" id="versionTag"></span>
+    </h1>
+
+    <div class="button-row" style="text-align: center;">
+<button class="impressum-btn" onclick="window.location.href='anleitung.html'">
+      📖 Anleitung
+        </button>
+<button class="impressum-btn" onclick="window.location.href='info.html'">
+  ℹ️ Info
+   </button>
+  </div>
+
+  <form id="generalForm">
+        <label for="prefix">Benennung des Zeitplans:</label>
+      <input type="text" id="prefix" placeholder="z.B. SBA1, Serie_23 o.ä.">
+
+   <label for="scheduleType">Wählen Sie einen Zeitplan:</label>
+  <select id="scheduleType" onchange="populateSteps()">
+   <option value="">Bitte wählen</option>
+  </select>
+
+     <label for="steps">Wählen Sie einen Arbeitsschritt:</label>
+     <select id="steps" disabled onchange="onStepSelected()">
+        <option value="">Bitte zuerst einen Typ wählen</option>
+    </select>
+
+     <!-- Toggle zwischen Kalender und Drehscheibe -->
+  <div id="dateSelectionToggle" class="date-selection-container hidden">
+        <label>Wählen Sie die Datumseingabe:</label>
+    <div class="toggle">
+   <button type="button" id="btnCalendar" class="active" onclick="switchDateMode('calendar')">📅 Kalender</button>
+<button type="button" id="btnWheel" onclick="switchDateMode('wheel')">🌀 Drehscheibe</button>
+     </div>
+ </div>
+
+ <!-- Kalender Modus -->
+<div id="calendarMode" class="hidden">
+ <label for="startDate">Wählen Sie das Datum für den Arbeitsschritt:</label>
+      <input type="date" id="startDate" onchange="generateSchedule()">
+        </div>
+
+    <!-- Drehscheiben Modus -->
+        <div id="wheelMode" class="hidden">
+        <div class="wheel-container">
+   <div class="pointer"></div>
+    <canvas id="wheelCanvas" width="200" height="200"></canvas>
+      </div>
+
+  <div id="wheelDateDisplay"></div>
+
+    <div class="wheel-buttons">
+    <button type="button" onclick="adjustDay(-1)">⬅️ -1 Tag</button>
+<button type="button" onclick="adjustDay(1)">➡️ +1 Tag</button>
+  </div>
+     </div>
+    </form>
+
+    <!-- Vorschau-Sektion (ohne Checkboxen) -->
+    <div id="previewSection" class="zeitplan hidden">
+<h2 id="zeitplanTitle"></h2>
+    <ul id="previewList"></ul>
+
+   <div id="noPrefixWarning" class="info-box info-box-warning hidden" style="font-size: var(--fs-sm);">
+   ⚠️ <strong>Hinweis:</strong> Sie haben keine Benennung des Zeitplans eingegeben. Die Dateinamen werden ohne die Benennung erstellt.
+    </div>
+
+    <button type="button" onclick="goToFinalPage()">Weiter ➡️</button>
+ </div>
+
+    <!-- Finaler Zeitplan (mit Checkboxen) -->
+    <div id="zeitplan" class="zeitplan hidden">
+    <div class="text-center mb-md">
+        <button type="button" onclick="goBackToPreview()" class="mb-md">⬅️ Zurück</button>
+        <!--<button type="button" id="expertModeBtn" onclick="toggleExpertMode()">🔧 Expertenmodus</button>
+        <button type="button" id="toggleDescriptionsBtn" onclick="toggleDescriptionsMode()"> 📝 Beschreibungen anzeigen</button>-->
+        <div class="action-buttons">
+    <button type="button"
+            id="expertModeBtn"
+            class="action-btn"
+            onclick="toggleExpertMode()">
+        🔧 Expertenmodus
+    </button>
+
+    <button type="button"
+            id="toggleDescriptionsBtn"
+            class="action-btn"
+            onclick="toggleDescriptionsMode()">
+        📝 Beschreibungen an
+    </button>
+</div>
+    </div>
+    <div id="expertModeHint" class="info-box info-box-info hidden" style="font-size: var(--fs-sm);">
+        ✏️ <strong>Einträge editierbar</strong> - Klicken Sie auf Datum oder Aufgabe zum Bearbeiten
+    </div>
+
+ <h2 id="zeitplanTitle2"></h2>
+        <ul id="scheduleList"></ul>
+
+ <!-- Erinnerungen Sektion -->
+      <div id="reminderSection" class="reminder-section hidden">
+   <h3>🔔 Erinnerungen für ausgewählte Termine</h3>
+  <p>Wählen Sie, wann Sie an Ihre Termine erinnert werden möchten:</p>
+            <div class="reminder-options">
+  <label>
+    <input type="checkbox" value="-PT1H">
+   <span>1 Stunde vorher</span>
+       </label>
+    <label>
+   <input type="checkbox" value="-PT3H">
+       <span>3 Stunden vorher</span>
+  </label>
+    <label>
+         <input type="checkbox" value="-P1D">
+  <span>1 Tag vorher</span>
+    </label>
+    <label>
+    <input type="checkbox" value="-P2D">
+     <span>2 Tage vorher</span>
+      </label>
+  <!--<label>
+ <input type="checkbox" value="-P1W">
+<span>1 Woche vorher</span>
+      </label>-->
+     </div>
+  </div>
+
+  <!-- Warnung ÜBER den Download-Buttons -->
+  <div id="dateChangedWarning" class="info-box info-box-danger hidden" style="font-size: var(--fs-sm);">
+    ⚠️ <strong>Datum wurde geändert</strong> - Sie wissen was Sie tun
+  </div>
+
+  <!-- Hinweis über Download-Buttons -->
+  <div id="downloadHint" class="info-box info-box-info" style="font-size: var(--fs-sm);">
+    ☑️ <strong>Hinweis:</strong> Beim Download werden nur Einträge mit Häkchen übernommen.
+  </div>
+
+
+  <!--<button type="button" onclick="downloadICS()">📅 ICS herunterladen</button>
+     <button type="button" onclick="downloadPDF()">📄 PDF herunterladen</button>-->
+     <div class="download-buttons">
+    <button type="button" onclick="downloadICS()">
+        📅 ICS herunterladen
+    </button>
+
+    <button type="button" onclick="downloadPDF()">
+        📄 PDF herunterladen
+    </button>
+</div>
+    </div>
+
+<script>
+
+    /* ===== PDF KONFIGURATION (Optimierung #11) ===== */
+    const PDF_CONFIG = {
+        pageHeight: 280,
+        margin: 20,
+        taskOffset: 35,
+        titleFontSize: 20,
+        textFontSize: 14,
+        lineSpacing: 7,
+        sectionSpacing: 1.2
+    };
+
+    /* ===== GLOBALE VARIABLEN ===== */
+    let year;
+    let downloadFileName;
+    let title = '';
+    let scheduleData = [];
+    let expertModeActive = false;
+    let taskCheckboxStates = [];  // Speichert Checkbox-Zustände der Tasks
+    let descriptionsVisible = false;
+    window.reminderStates = [false, false, false, false, false];  // Speichert Erinnerungs-Zustände: 1h, 3h, 1d, 2d, 1w
+
+    const testTheHtml = false;
+
+    /* ===== DOM ELEMENTE CACHEN (Optimierung #3) ===== */
+    const DOM = {};
+
+  /* ===== FEHLERBEHANDLUNG (Optimierung #15) ===== */
+    function validateDependencies() {
+      if (typeof schedules === 'undefined') {
+        alert('❌ Fehler: plan.js konnte nicht geladen werden!\n\nBitte stelle sicher, dass die Datei plan.js im gleichen Verzeichnis liegt.');
+      return false;
+    }
+    if (typeof emojiMap === 'undefined') {
+      console.warn('⚠️ Warnung: emojiMap nicht gefunden. Emojis werden nicht angezeigt.');
+    }
+    return true;
+    }
+
+    /* ===== INITIALISIERUNG ===== */
+    function setTestValues() {
+      if (testTheHtml) {
+        DOM.prefix.value = 'TestPrefix';
+        DOM.scheduleType.value = 'TuB';
+        populateSteps();
+        DOM.steps.value = '0';
+        DOM.startDate.value = '2025-06-01';
+
+    onStepSelected();
+      }
+}
+
+    function getFormState() {
+     return {
+  prefix: DOM.prefix.value.trim(),
+     scheduleType: DOM.scheduleType.value,
+    steps: parseInt(DOM.steps.value),
+ startDate: DOM.startDate.value,
+ };
+    }
+
+ /* ===== FORMULAR FUNKTIONEN ===== */
+
+    /* ===== ZEITPLAN GENERIERUNG ===== */
+    function generateSchedule() {
+        const state = getFormState();
+
+  let selectedDate;
+        if (DOM.calendarMode.classList.contains('hidden')) {
+   selectedDate = getWheelDate();
+ } else {
+ if (!state.startDate) return;
+ selectedDate = new Date(state.startDate);
+      }
+
+    year = selectedDate.getFullYear();
+
+        title = `${state.prefix ? state.prefix + '_' : ''}${state.scheduleType}-Zeitplan ${year}`;
+     DOM.zeitplanTitle.textContent = title;
+
+   downloadFileName = `${year}_${state.prefix ? state.prefix + '_' : ''}${state.scheduleType}-Zeitplan`;
+
+     scheduleData = createScheduleData(
+    state.scheduleType,
+    selectedDate,
+    state.steps
+);
+
+        renderList('previewList', scheduleData, false, taskCheckboxStates);
+   DOM.previewSection.classList.remove('hidden');
+    DOM.zeitplan.classList.add('hidden');
+
+    updateNoPrefixWarning(selectedDate);
+    }
+
+
+
+
+    function showFinalSchedule() {
+        // Checkbox-Zustände initialisieren (alle auf true)
+    taskCheckboxStates = scheduleData.map(() => true);
+
+        renderList('scheduleList', scheduleData, true, taskCheckboxStates);
+        DOM.zeitplanTitle2.textContent = DOM.zeitplanTitle.textContent;
+
+        // Erinnerungs-Sektion anzeigen
+  DOM.reminderSection.classList.remove('hidden');
+
+   // Event Listener für Erinnerungs-Checkboxen hinzufügen
+   const reminderCheckboxes = DOM.reminderSection.querySelectorAll('input[type="checkbox"]');
+    reminderCheckboxes.forEach((checkbox, index) => {
+  checkbox.checked = window.reminderStates[index];
+ checkbox.addEventListener('change', function() {
+  window.reminderStates[index] = this.checked;
+  });
+});
+
+ updateReminderSectionVisibility();
+
+ DOM.previewSection.classList.add('hidden');
+ DOM.zeitplan.classList.remove('hidden');
+    }
+
+    /* ===== Beschreibungen anzeigen ===== */
+    function toggleDescriptionsMode() {
+    descriptionsVisible = !descriptionsVisible;
+
+    const btn = document.getElementById('toggleDescriptionsBtn');
+    btn.textContent = descriptionsVisible
+        ? '📝 Beschreibungen aus'
+        : '📝 Beschreibungen an';
+
+    btn.classList.toggle('active', descriptionsVisible);
+
+    // neu rendern, damit es sofort sichtbar wird
+    renderList('scheduleList', scheduleData, true, taskCheckboxStates);
+}
+
+    /* ===== EXPERTENMODUS ===== */
+    function toggleExpertMode() {
+    expertModeActive = !expertModeActive;
+
+    if (expertModeActive) {
+        DOM.expertModeBtn.textContent = '✅ Expertenmodus aktiv';
+        DOM.expertModeBtn.classList.add('active');
+        DOM.expertModeHint.classList.remove('hidden');
+    } else {
+        DOM.expertModeBtn.textContent = '🔧 Expertenmodus';
+        DOM.expertModeBtn.classList.remove('active');
+        DOM.expertModeHint.classList.add('hidden');
+    }
+
+    // 🔥 IMMER neu rendern – das ist der Schlüssel
+    renderList('scheduleList', scheduleData, true, taskCheckboxStates);
+}
+
+function makeDescriptionEditable(descEl, index) {
+    const input = document.createElement('textarea');
+    input.value = scheduleData[index].additionalText || '';
+    input.className = 'expert-input expert-desc';
+    input.style.width = '100%';
+    input.style.minHeight = '60px';
+
+    input.addEventListener('blur', function () {
+    scheduleData[index].additionalText = this.value;
+
+    const newDiv = document.createElement('div');
+    newDiv.className = 'schedule-desc';
+    newDiv.textContent = this.value;
+
+    if (expertModeActive) {
+        newDiv.style.cursor = 'pointer';
+        newDiv.onclick = () => makeDescriptionEditable(newDiv, index);
+    }
+
+    this.replaceWith(newDiv);
+});
+
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && e.ctrlKey) {
+            this.blur();
+        }
+    });
+
+    descEl.replaceWith(input);
+    input.focus();
+}
+
+
+
+//     function makeListEditable() {
+//   const items = DOM.scheduleList.querySelectorAll('.schedule-main');
+//
+//   items.forEach((main, index) => {
+//     const strong = main.querySelector('strong');
+//     const span = main.querySelector('span');
+//
+//     if (strong) {
+//       strong.style.cursor = 'pointer';
+//       strong.onclick = () => makeDateEditable(strong, index);
+//     }
+//
+//     if (span) {
+//       span.style.cursor = 'pointer';
+//       span.onclick = () => makeTaskEditable(span, index);
+//     }
+//   });
+// }
+
+  function makeDateEditable(strong, index) {
+  const dateText = strong.textContent.trim();
+     // Datum parsen (Format: "Mo 1. Januar:")
+    const dateMatch = dateText.match(/(\d{1,2})\.\s+(\w+)/);
+   if (dateMatch) {
+ const day = parseInt(dateMatch[1]);
+    const monthName = dateMatch[2];
+      const monthIndex = MONTHS.indexOf(monthName);
+
+    if (monthIndex !== -1) {
+ // Wichtig: Datum im lokalen Kontext erstellen
+    const currentDate = new Date(year, monthIndex, day);
+
+      // ISO-Format für input type="date" (YYYY-MM-DD)
+  const yyyy = currentDate.getFullYear();
+       const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
+     const dd = String(currentDate.getDate()).padStart(2, '0');
+    const isoDate = `${yyyy}-${mm}-${dd}`;
+
+ const input = document.createElement('input');
+ input.type = 'date';
+     input.value = isoDate;
+    input.className = 'expert-input expert-date';
+
+    // Blur-Event: Wenn man rausklickt ohne zu ändern
+     input.addEventListener('blur', function() {
+  // Prüfen ob Datum geändert wurde
+    const newDate = new Date(this.value);
+ const oldDate = scheduleData[index].taskDate;
+
+   if (newDate.getTime() !== oldDate.getTime()) {
+      // Datum wurde geändert
+     scheduleData[index].taskDate = newDate;
+      scheduleData[index].dateFormatted = formatDateLong(newDate);
+  scheduleData[index].dateShort = formatDateShort(newDate);
+       DOM.dateChangedWarning.classList.remove('hidden');
+  }
+
+  // Zurück zu Strong-Element
+        const newStrong = document.createElement('strong');
+       newStrong.textContent = scheduleData[index].dateFormatted;
+   newStrong.style.cursor = 'pointer';
+  newStrong.onclick = () => makeDateEditable(newStrong, index);
+     this.replaceWith(newStrong);
+   });
+
+ input.addEventListener('keydown', function(e) {
+if (e.key === 'Enter') {
+    this.blur();
+  }
+    });
+
+ strong.replaceWith(input);
+     input.focus();
+ }
+  }
+    }
+
+ function makeTaskEditable(taskSpan, index) {
+   const input = document.createElement('input');
+input.type = 'text';
+    input.value = taskSpan.textContent.trim();
+  input.className = 'expert-input expert-task';
+  input.style.flex = '1';
+input.style.minWidth = '0';
+input.style.boxSizing = 'border-box';
+
+ input.addEventListener('blur', function() {
+   scheduleData[index].task = this.value;
+
+  const newTaskSpan = document.createElement('span');
+    newTaskSpan.textContent = this.value;
+     newTaskSpan.style.cursor = 'pointer';
+   newTaskSpan.onclick = () => makeTaskEditable(newTaskSpan, index);
+this.replaceWith(newTaskSpan);
+   });
+
+  input.addEventListener('keydown', function(e) {
+     if (e.key === 'Enter') {
+ this.blur();
+  }
+   });
+
+ taskSpan.replaceWith(input);
+        input.focus();
+    }
+
+    /* ===== NAVIGATION ===== */
+    function goToFinalPage() {
+ saveFormState();
+   DOM.generalForm.classList.add('hidden');
+      DOM.previewSection.classList.add('hidden');
+  showFinalSchedule();
+      window.scrollTo(0, 0);
+    }
+
+    function goBackToPreview() {
+        // Expertenmodus deaktivieren beim Zurückgehen
+   if (expertModeActive) {
+expertModeActive = false;
+    DOM.expertModeBtn.textContent = '🔧 Expertenmodus';
+    DOM.expertModeBtn.classList.remove('active');
+        }
+
+// Warnungen ausblenden
+        DOM.expertModeHint.classList.add('hidden');
+    DOM.dateChangedWarning.classList.add('hidden');
+
+  // Zeitplan neu generieren, um Original-Daten wiederherzustellen
+  renderList('scheduleList', scheduleData, true, taskCheckboxStates);
+
+  DOM.generalForm.classList.remove('hidden');
+      DOM.previewSection.classList.remove('hidden');
+        DOM.zeitplan.classList.add('hidden');
+   window.scrollTo(0, 0);
+  }
+
+  function updateNoPrefixWarning(selectedDate) {
+  const prefix = DOM.prefix.value.trim();
+
+  if (!prefix && selectedDate) {
+    DOM.noPrefixWarning.classList.remove('hidden');
+  } else {
+    DOM.noPrefixWarning.classList.add('hidden');
+  }
+}
+
+    /* ===== STATE MANAGEMENT ===== */
+    function saveFormState() {
+     const state = {
+   prefix: DOM.prefix.value,
+ scheduleType: DOM.scheduleType.value,
+  steps: DOM.steps.value,
+      startDate: DOM.startDate.value,
+     angle: getWheelAngle(),
+  isWheelMode: !DOM.wheelMode.classList.contains('hidden')
+ };
+
+  sessionStorage.setItem('formState', JSON.stringify(state));
+    }
+
+    function restoreFormState() {
+        const savedState = sessionStorage.getItem('formState');
+  if (!savedState) return;
+
+    const state = JSON.parse(savedState);
+
+        DOM.prefix.value = state.prefix || '';
+
+     if (state.scheduleType) {
+ DOM.scheduleType.value = state.scheduleType;
+    populateSteps();
+}
+
+    if (state.steps) {
+  DOM.steps.value = state.steps;
+        }
+
+     if (state.startDate) {
+   DOM.startDate.value = state.startDate;
+  }
+
+ if (state.angle !== undefined) {
+     setWheelAngle(state.angle);
+      drawWheel();
+          updateWheelCalculation();
+        }
+
+   if (state.isWheelMode) {
+    switchDateMode('wheel');
+      }
+ }
+
+window.populateSteps = populateSteps;
+window.onStepSelected = onStepSelected;
+window.switchDateMode = switchDateMode;
+window.generateSchedule = generateSchedule;
+window.goToFinalPage = goToFinalPage;
+window.goBackToPreview = goBackToPreview;
+window.toggleExpertMode = toggleExpertMode;
+</script>
+</body>
+</html>
