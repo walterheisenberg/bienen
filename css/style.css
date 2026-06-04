@@ -291,14 +291,13 @@ input.expert-input[type="text"] { min-width:var(--input-text-width); }
 .schedule-divider { height:1px; background:var(--divider); margin:2px 0; }
 .schedule-desc { padding:var(--xs-plus) var(--sm); font-size:var(--fs-sm); color:var(--text-muted); white-space:pre-line; }
 
-/* ===== ACTION & TOOL BUTTONS ===== */
-.action-buttons { display:flex; gap:var(--sm); align-items:stretch; }
-.action-btn { flex:1; padding:var(--xs-plus) var(--md); font-size:var(--fs-sm); }
+/* ===== ACTION & TOOL BUTTONS (Vereinheitlicht) ===== */
+.action-buttons {
+  display: flex;
+  gap: var(--sm);
+  align-items: stretch;
+}
 
-.download-buttons { display: flex; gap: var(--sm); justify-content: space-between; }
-.download-buttons .action-btn { flex: 1; }
-
-/* Ersetze den bestehenden .tool-btn Block mit diesem: */
 .tool-btn {
   flex: 1;
   display: flex;
@@ -306,12 +305,11 @@ input.expert-input[type="text"] { min-width:var(--input-text-width); }
   justify-content: center;
   gap: var(--xs-plus);
 
-  /* Fest definierte Mindesthöhe für beide */
+  /* Absolut identische Maße für alle Tool-Buttons */
   height: 36px;
-  padding: 0 var(--md); /* Padding oben/unten auf 0, da die Höhe fix ist */
-
+  padding: 0 var(--md);
   font-size: var(--fs-sm);
-  line-height: 1; /* Verhindert, dass Text die Höhe aufbläht */
+  line-height: 1;
 
   border: none;
   border-radius: var(--r-sm);
@@ -319,7 +317,42 @@ input.expert-input[type="text"] { min-width:var(--input-text-width); }
   transition: all var(--t-fast);
 }
 
-.tool-btn .icon, .tool-btn .label { display:inline-flex; line-height:1; }
+.tool-btn .icon, .tool-btn .label {
+  display: inline-flex;
+  line-height: 1;
+}
+
+/* Spezifische Farben für den Bearbeiten-Button */
+.btn-expert {
+  background: var(--expert);
+  color: #fff;
+}
+.btn-expert:hover {
+  background: var(--expert-hover);
+  box-shadow: var(--shadow-hover);
+}
+.btn-expert.active {
+  background: var(--success);
+}
+.btn-expert.active:hover {
+  background: var(--success-hover);
+}
+
+/* Spezifische Farben für den Beschreibungs-Button */
+.btn-desc {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-desc:hover {
+  background: var(--accent-hover);
+  box-shadow: var(--shadow-hover);
+}
+.btn-desc.active {
+  background: var(--success);
+}
+.btn-desc.active:hover {
+  background: var(--success-hover);
+}
 
 /* ===== MISC INFO ELEMENTS ===== */
 .github-link {
