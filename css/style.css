@@ -1,0 +1,370 @@
+/* =========================================================
+ *  KALENDER GENERATOR BIENEN - CSS v2 (optimiert)
+ *======================================================== */
+
+/* ===== DESIGN TOKENS ===== */
+:root {
+  --primary:#007bff; /* Blau */ --primary-hover:#0056b3; /* Dunkelblau */
+
+  --accent:#20a39e; /* Türkis */ --accent-hover:#1b8b87; /* dunkles Türkis */
+
+  --bg:#f5f5f5; --surface:#fff; --surface-alt:#f0f0f0; /* Hellgrau, weiß */
+  --text:#333; --text-muted:#4f4f4f; --border:#ccc; /* Dunkelgrau, grau */
+
+  /* Warnungen */
+  --warning-bg:#fff3cd; /* Gelb */
+  --warning-border:#ffc107; /* Gelb-Orange */
+  --warning-text:#856404; /* Braun */
+
+  /* Informationen */
+  --info-bg:#d1ecf1; /* Hellblau */
+  --info-border:#0c5460; --info-text:#0c5460; /* Dunkelblau */
+
+  /* Kritische Warnungen */
+  --danger-bg:#f8d7da; --danger-border:#dc3545; /* Rot */
+  --danger-text:#721c24; /* Dunkelrot */
+
+/*   --success:#28a745; Grün */
+  --success:#3ba153;
+  --success-hover:#319848; /* Dunkelgrün */
+  --expert:#6c757d; --expert-hover:#5a6268; /* Grau, Dunkelgrau */
+
+  --btn-inactive:#ddd; --btn-inactive-hover:#ccc; /* Hellgrau, grau */
+
+  --reminder-bg:#e7f3ff; /* Hellblau */
+  --reminder-border:#b3d9ff; /* Blau */
+
+  --hover-bg:rgba(0,123,255,0.1); /* Blau (transparent) */
+  --input-focus-bg:#f8f9fa; /* Sehr helles Grau */
+
+  --divider:#e0e0e0;
+  --border-light:#ddd;
+
+  --xs:5px; --xs-plus:8px; --sm:10px; --sm-plus:12px;
+  --md:15px; --lg:20px;
+
+  --r-xs:4px; --r-sm:5px; --r-md:8px;
+
+  --body-width:97%; --max:600px; --wheel-size:200px;
+
+  --fs-xs:.6em; --fs-sm:.9rem; --fs:1rem;
+  --fs-md:1.2rem; --fs-lg:1.5rem;
+  --lh:1.6; --text-spacing:.3em;
+
+  --input-min-width:150px; --input-date-width:180px;
+  --input-text-width:300px; --input-text-mobile:200px;
+  --btn-min-width:150px;
+
+  --border-thick:2px;
+
+  --t-fast:.2s ease; --t:.3s ease;
+
+  --shadow:0 2px 4px rgba(0,0,0,.1);
+  --shadow-hover:0 2px 5px rgba(0,0,0,.2);
+  --shadow-focus:0 0 0 3px var(--focus);
+
+  --focus:rgba(0,123,255,.25); --focus-width:3px;
+  --opacity-disabled:.7;
+
+  --breakpoint-mobile:768px;
+}
+
+/* ===== RESET ===== */
+*,*::before,*::after { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+/* ===== UTILITIES ===== */
+.flex{display:flex;} .flex-col{flex-direction:column;}
+.items-center{align-items:center;} .items-start{align-items:flex-start;}
+.justify-center{justify-content:center;}
+.gap-sm{gap:var(--sm);} .grow{flex-grow:1;}
+.hidden{display:none!important;} .mb-md{margin-bottom:var(--md);}
+.text-center{text-align:center;} .w-auto{width:auto;}
+
+/* ===== BASE LAYOUT ===== */
+body{
+  width:var(--body-width); margin:var(--sm); padding:0;
+  font-family:Arial,sans-serif;
+  font-size:clamp(1rem,2vw,var(--fs-md));
+  line-height:var(--lh);
+  background:var(--bg); color:var(--text);
+}
+
+h1,h2{
+  text-align:center; margin:var(--xs) 0;
+}
+h1{font-size:clamp(1.2rem,3vw,var(--fs-lg));}
+h2{font-size:clamp(1rem,2.5vw,var(--fs-md));}
+
+.version {
+  margin-left: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+
+/* ===== CONTAINER ===== */
+form,.zeitplan{
+  width:var(--body-width); max-width:var(--max);
+  margin:var(--lg) auto; padding:var(--md);
+  background:var(--surface); border-radius:var(--r-md);
+  box-shadow:var(--shadow);
+}
+
+.zeitplan p,.zeitplan h3{margin:var(--xs) 0;}
+
+/* ===== FORM ===== */
+label{display:block;margin-top:var(--sm);}
+input,select,button{
+  width:100%; margin:var(--xs) 0; padding:var(--sm);
+  font-size:var(--fs-md);
+  border:1px solid var(--border); border-radius:var(--r-sm);
+}
+
+/* ===== BUTTONS ===== */
+button{
+  border:none; cursor:pointer;
+  background:var(--primary); color:#fff;
+  transition:background var(--t-fast);
+}
+button:hover{background:var(--primary-hover);}
+button:focus-visible{outline:var(--border-thick) solid var(--primary);outline-offset:2px;}
+
+.impressum-btn{
+  width:auto; padding:0; background:none;
+  color:var(--primary); font-size:var(--fs-sm);
+}
+.impressum-btn:hover{text-decoration:underline;background:none;}
+
+/* ===== LIST SYSTEM ===== */
+ul{list-style:none;padding:0;margin:0;}
+
+li{
+  display:flex; align-items:center;
+  padding:var(--sm); margin-bottom:var(--sm);
+  background:transparent; border-radius:var(--r-sm);
+}
+
+#previewList,#scheduleList{
+display:flex; flex-direction:column;
+}
+#previewList{gap:var(--xs);}
+#scheduleList{gap:var(--sm-plus); padding-bottom:var(--md);}
+
+#previewList li{padding:var(--xs) 0;margin:0;}
+#scheduleList li{
+padding:0; margin:0; gap:var(--xs);
+}
+
+li strong::after{
+  content:" "; display:inline-block; width:var(--text-spacing);
+}
+
+.checkbox{
+  width:var(--lg); height:var(--lg);
+  margin:0 var(--xs) 0 var(--sm); flex-shrink:0;
+}
+.checkbox:focus-visible{
+  outline:var(--border-thick) solid var(--primary);outline-offset:2px;
+}
+
+.task-indent{
+  display:flex; align-items:center;
+  gap:var(--xs); flex:1; padding-right:var(--xs-plus);
+}
+
+/* ===== WHEEL ===== */
+.date-selection-container{margin-top:var(--lg);}
+.toggle{
+  margin-bottom:var(--lg); display:flex; gap:var(--sm);
+}
+.toggle button{
+  flex:1; padding:var(--sm-plus);
+  background:var(--btn-inactive);
+}
+.toggle button:hover{background:var(--btn-inactive-hover);}
+.toggle .active{
+  background:var(--accent); color:#fff;
+}
+.toggle .active:hover{background:var(--accent-hover);}
+
+.wheel-container{
+  position:relative; width:var(--wheel-size); height:var(--wheel-size);
+  aspect-ratio:1/1; margin:var(--xs) auto;
+}
+
+canvas{
+  cursor:grab; touch-action:none; display:block;
+  border:none; outline:none; box-shadow:none;
+}
+canvas:active{cursor:grabbing;}
+
+#wheelDateDisplay{
+margin-top:var(--xs); font-size:var(--fs-md);
+font-weight:600; text-align:center; color:var(--text);
+}
+
+.wheel-buttons{
+  margin-top:var(--xs); display:flex; justify-content:center; gap:var(--sm);
+}
+.wheel-buttons button{
+  min-width:var(--btn-min-width); padding:var(--sm) var(--lg);
+  border-radius:var(--r-md); font-size:var(--fs-sm); font-weight:500;
+  background:var(--accent); color:#fff;
+  transition:all var(--t-fast); box-shadow:var(--shadow);
+}
+.wheel-buttons button:hover{
+  background:var(--accent-hover); transform:translateY(-1px);
+  box-shadow:var(--shadow-hover);
+}
+.wheel-buttons button:active{
+  transform:translateY(0); box-shadow:var(--shadow);
+}
+
+/* ===== INFO BOXES ===== */
+.info-box{
+  margin:var(--xs-plus) 0; padding:var(--sm);
+  border-radius:var(--r-sm);
+}
+.info-box-warning{
+  background:var(--warning-bg);
+  border:1px solid var(--warning-border);
+  color:var(--warning-text);
+}
+.info-box-info{
+  background:var(--info-bg);
+  border:1px solid var(--info-border);
+  color:var(--info-text);
+}
+
+.info-box-danger{
+  background:var(--danger-bg);
+  border:1px solid var(--danger-border);
+  color:var(--danger-text);
+}
+
+/* ===== EXPERT MODE ===== */
+#expertModeBtn{
+padding:var(--xs-plus) var(--md);
+background:var(--expert); font-size:var(--fs-sm);
+transition:background var(--t),transform var(--t),box-shadow var(--t);
+}
+#expertModeBtn:hover{background:var(--expert-hover);box-shadow:var(--shadow-hover);}
+#expertModeBtn.active{background:var(--success);}
+#expertModeBtn.active:hover{background:var(--success-hover);}
+
+.expert-input{
+  width:auto; min-width:var(--input-min-width);
+  padding:var(--xs) var(--xs-plus);
+  border:var(--border-thick) solid var(--primary);
+  border-radius:var(--r-xs);
+  font-size:var(--fs-sm); font-family:inherit;
+  transition:all var(--t-fast);
+}
+.expert-input:hover,.expert-input:focus{border-color:var(--primary-hover);}
+.expert-input:focus-visible{
+  outline:none; box-shadow:var(--shadow-focus);
+  background:var(--input-focus-bg);
+}
+input.expert-input[type="date"]{min-width:var(--input-date-width);}
+input.expert-input[type="text"]{min-width:var(--input-text-width);}
+
+/* ===== REMINDERS ===== */
+.reminder-section{
+  margin:var(--lg) 0; padding:var(--md);
+  background:var(--reminder-bg);
+  border:1px solid var(--reminder-border);
+  border-radius:var(--r-md);
+}
+.reminder-section h3{
+  margin-top:0; font-size:var(--fs-md); color:var(--primary);
+}
+.reminder-section p{
+  margin-bottom:var(--xs); font-size:var(--fs-sm); color:var(--text-muted);
+}
+
+.reminder-options{
+  display:flex; flex-direction:column; gap:0;
+}
+.reminder-options label{
+  display:flex; align-items:center;
+  padding-left:var(--xs); margin:0;
+  border-radius:var(--r-sm); cursor:pointer;
+  transition:background var(--t-fast);
+}
+.reminder-options label:hover:not(.disabled){background:var(--hover-bg);}
+.reminder-options label.disabled{opacity:var(--opacity-disabled);cursor:default;}
+
+.reminder-options input[type="checkbox"]{
+  width:var(--lg); height:var(--lg); margin-right:var(--sm);
+}
+.reminder-options input[type="checkbox"]:focus-visible{
+  outline:var(--border-thick) solid var(--primary);outline-offset:2px;
+}
+
+/* ===== DESCRIPTION BLOCK ===== */
+.description-box{
+  margin-top:var(--sm);
+  background:var(--surface); border:1px solid var(--border-light);
+}
+
+/* ===== 2-ZEILEN BLOCK ===== */
+.schedule-block{
+  background:var(--surface-alt);
+  border-radius:var(--r-sm);
+  overflow:hidden; flex:1; width:100%;
+}
+.schedule-main{
+  display:flex; gap:var(--sm); align-items:center;
+  padding:var(--xs-plus) var(--sm);
+}
+.schedule-divider{
+  height:1px; background:var(--divider); margin:2px 0;
+}
+.schedule-desc{
+  padding:var(--xs-plus) var(--sm); font-size:var(--fs-sm);
+  color:var(--text-muted); white-space:pre-line;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.action-buttons{
+  display:flex; gap:var(--sm);
+}
+.action-btn{
+  flex:1; padding:var(--xs-plus) var(--md);
+  font-size:var(--fs-sm);
+}
+
+#toggleDescriptionsBtn{
+background:var(--accent);
+color:#fff;
+}
+
+#toggleDescriptionsBtn:hover{
+background:var(--accent-hover);
+}
+
+#toggleDescriptionsBtn.active{
+background:var(--success);
+}
+
+#toggleDescriptionsBtn.active:hover{
+background:var(--success-hover);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width:768px){
+  #expertModeBtn{width:100%;margin-bottom:var(--sm);}
+  .expert-input[type="text"]{min-width:var(--input-text-mobile);}
+  #scheduleList li{align-items:center;gap:var(--sm);}
+}
+
+.download-buttons {
+  display: flex;
+  gap: var(--sm);
+  justify-content: space-between;
+}
+
+.download-buttons .action-btn {
+  flex: 1;
+}

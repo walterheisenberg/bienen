@@ -13,7 +13,7 @@ Feedback ist immer willkomen. -->
 
   <script>
  // Version
-    const Version = "0.87";
+    const Version = "0.79";
  </script>
 
     <meta charset="UTF-8">
@@ -21,7 +21,7 @@ Feedback ist immer willkomen. -->
     <title>Kalender Generator Bienen</title>
 
     <!-- Zeitpläne laden -->
-    <script src="modules/plan.js"></script>
+    <script src="schedules.js"></script>
 
     <!-- sicherstellen, dass emojiMap global verfügbar ist -->
     <script>
@@ -31,19 +31,13 @@ Feedback ist immer willkomen. -->
     </script>
 
     <!-- CSS laden -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="style.css">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     
     <!-- Ausgelagerte Funktionen laden -->
-    <script src="modules/dateUtils.js"></script>
-    <script src="modules/schedule.js"></script>
-    <script src="modules/ui.js"></script>
-
-    <script src="modules/wheel.js"></script>
-    <script src="modules/downloads.js"></script>
-
-    <script src="modules/app.js"></script>
+    <script src="wheel.js"></script>
+    <script src="downloads.js"></script>
 </head>
 
 <body>
@@ -72,7 +66,7 @@ Feedback ist immer willkomen. -->
 
      <label for="steps">Wählen Sie einen Arbeitsschritt:</label>
      <select id="steps" disabled onchange="onStepSelected()">
-        <option value="">Bitte zuerst einen Typ wählen</option>
+        <option value="">Bitte zuerst einen Zeitplan wählen</option>
     </select>
 
      <!-- Toggle zwischen Kalender und Drehscheibe -->
@@ -122,23 +116,7 @@ Feedback ist immer willkomen. -->
     <div id="zeitplan" class="zeitplan hidden">
     <div class="text-center mb-md">
         <button type="button" onclick="goBackToPreview()" class="mb-md">⬅️ Zurück</button>
-        <!--<button type="button" id="expertModeBtn" onclick="toggleExpertMode()">🔧 Expertenmodus</button>
-        <button type="button" id="toggleDescriptionsBtn" onclick="toggleDescriptionsMode()"> 📝 Beschreibungen anzeigen</button>-->
-        <div class="action-buttons">
-    <button type="button"
-            id="expertModeBtn"
-            class="action-btn"
-            onclick="toggleExpertMode()">
-        🔧 Expertenmodus
-    </button>
-
-    <button type="button"
-            id="toggleDescriptionsBtn"
-            class="action-btn"
-            onclick="toggleDescriptionsMode()">
-        📝 Beschreibungen anzeigen
-    </button>
-</div>
+        <button type="button" id="expertModeBtn" onclick="toggleExpertMode()">🔧 Expertenmodus</button>
     </div>
     <div id="expertModeHint" class="info-box info-box-info hidden" style="font-size: var(--fs-sm);">
         ✏️ <strong>Einträge editierbar</strong> - Klicken Sie auf Datum oder Aufgabe zum Bearbeiten
@@ -176,30 +154,20 @@ Feedback ist immer willkomen. -->
   </div>
 
   <!-- Warnung ÜBER den Download-Buttons -->
-  <div id="dateChangedWarning" class="info-box info-box-danger hidden" style="font-size: var(--fs-sm);">
+  <div id="dateChangedWarning" class="info-box info-box-warning hidden" style="font-size: var(--fs-sm);">
     ⚠️ <strong>Datum wurde geändert</strong> - Sie wissen was Sie tun
   </div>
 
-  <!-- Hinweis über Download-Buttons -->
-  <div id="downloadHint" class="info-box info-box-info" style="font-size: var(--fs-sm);">
-    ☑️ <strong>Hinweis:</strong> Beim Download werden nur Einträge mit Häkchen übernommen.
-  </div>
 
-
-  <!--<button type="button" onclick="downloadICS()">📅 ICS herunterladen</button>
-     <button type="button" onclick="downloadPDF()">📄 PDF herunterladen</button>-->
-     <div class="download-buttons">
-    <button type="button" onclick="downloadICS()">
-        📅 ICS herunterladen
-    </button>
-
-    <button type="button" onclick="downloadPDF()">
-        📄 PDF herunterladen
-    </button>
-</div>
+  <button type="button" onclick="downloadICS()">📅 Als ICS herunterladen</button>
+     <button type="button" onclick="downloadPDF()">📄 Als PDF herunterladen</button>
     </div>
 
 <script>
+    /* ===== GLOBALE KONSTANTEN (Optimierung #2) ===== */
+    const WEEKDAYS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+    const MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni", 
+       "Juli", "August", "September", "Oktober", "November", "Dezember"];
 
     /* ===== PDF KONFIGURATION (Optimierung #11) ===== */
     const PDF_CONFIG = {
@@ -219,7 +187,6 @@ Feedback ist immer willkomen. -->
     let scheduleData = [];
     let expertModeActive = false;
     let taskCheckboxStates = [];  // Speichert Checkbox-Zustände der Tasks
-    let descriptionsVisible = false;
     window.reminderStates = [false, false, false, false, false];  // Speichert Erinnerungs-Zustände: 1h, 3h, 1d, 2d, 1w
 
     const testTheHtml = false;
@@ -227,10 +194,36 @@ Feedback ist immer willkomen. -->
     /* ===== DOM ELEMENTE CACHEN (Optimierung #3) ===== */
     const DOM = {};
 
+    function cacheDOMElements() {
+      DOM.prefix = document.getElementById('prefix');
+      DOM.scheduleType = document.getElementById('scheduleType');
+      DOM.steps = document.getElementById('steps');
+      DOM.startDate = document.getElementById('startDate');
+      DOM.dateSelectionToggle = document.getElementById('dateSelectionToggle');
+      DOM.calendarMode = document.getElementById('calendarMode');
+      DOM.wheelMode = document.getElementById('wheelMode');
+      DOM.btnCalendar = document.getElementById('btnCalendar');
+      DOM.btnWheel = document.getElementById('btnWheel');
+      DOM.previewSection = document.getElementById('previewSection');
+      DOM.zeitplan = document.getElementById('zeitplan');
+      DOM.zeitplanTitle = document.getElementById('zeitplanTitle');
+      DOM.zeitplanTitle2 = document.getElementById('zeitplanTitle2');
+      DOM.previewList = document.getElementById('previewList');
+      DOM.scheduleList = document.getElementById('scheduleList');
+      DOM.generalForm = document.getElementById('generalForm');
+      DOM.wheelDateDisplay = document.getElementById('wheelDateDisplay');
+      DOM.wheelCanvas = document.getElementById('wheelCanvas');
+      DOM.noPrefixWarning = document.getElementById('noPrefixWarning');
+      DOM.expertModeBtn = document.getElementById('expertModeBtn');
+      DOM.expertModeHint = document.getElementById('expertModeHint');
+      DOM.dateChangedWarning = document.getElementById('dateChangedWarning');
+      DOM.reminderSection = document.getElementById('reminderSection');
+    }
+
   /* ===== FEHLERBEHANDLUNG (Optimierung #15) ===== */
     function validateDependencies() {
       if (typeof schedules === 'undefined') {
-        alert('❌ Fehler: plan.js konnte nicht geladen werden!\n\nBitte stelle sicher, dass die Datei plan.js im gleichen Verzeichnis liegt.');
+        alert('❌ Fehler: schedules.js konnte nicht geladen werden!\n\nBitte stelle sicher, dass die Datei schedules.js im gleichen Verzeichnis liegt.');
       return false;
     }
     if (typeof emojiMap === 'undefined') {
@@ -261,7 +254,141 @@ Feedback ist immer willkomen. -->
  };
     }
 
+    document.addEventListener('DOMContentLoaded', () => {
+// Prüfe Abhängigkeiten
+  if (!validateDependencies()) {
+  return;
+    }
+
+        cacheDOMElements();
+    document.getElementById('versionTag').textContent = "v" + Version;
+ populateScheduleTypes();
+  
+   // Drehscheibe initialisieren
+  initWheel();
+        
+   // Versuche gespeicherten Zustand wiederherzustellen
+    restoreFormState();
+ 
+    // Falls kein gespeicherter Zustand, setze Testwerte
+        if (!sessionStorage.getItem('formState')) {
+    setTestValues();
+    }
+    });
+
  /* ===== FORMULAR FUNKTIONEN ===== */
+    function populateScheduleTypes() {
+    Object.keys(schedules).forEach(type => {
+  const option = document.createElement('option');
+          option.value = type;
+      option.textContent = type;
+   DOM.scheduleType.appendChild(option);
+      });
+    }
+
+    function populateSteps() {
+   const scheduleType = DOM.scheduleType.value;
+
+     DOM.steps.innerHTML = '';
+   DOM.steps.disabled = !scheduleType;
+
+   if (!scheduleType) {
+      DOM.steps.innerHTML = '<option value="">Bitte zuerst einen Typ wählen</option>';
+     DOM.dateSelectionToggle.classList.add('hidden');
+      DOM.calendarMode.classList.add('hidden');
+ DOM.wheelMode.classList.add('hidden');
+       DOM.previewSection.classList.add('hidden');
+   DOM.zeitplan.classList.add('hidden');
+      return;
+  }
+
+    schedules[scheduleType]
+   .filter(({ selectable }) => selectable)
+    .forEach(({ offset, task }) => {
+       const option = document.createElement('option');
+   option.value = offset;
+     option.textContent = task;
+    DOM.steps.appendChild(option);
+      });
+
+    if (!sessionStorage.getItem('formState') && DOM.steps.options.length > 0) {
+     DOM.steps.selectedIndex = 0;
+  onStepSelected();
+} else if (sessionStorage.getItem('formState') && DOM.steps.value !== '') {
+      onStepSelected();
+   }
+}
+
+    function onStepSelected() {
+    if (DOM.steps.value !== '') {
+  DOM.dateSelectionToggle.classList.remove('hidden');
+      
+    // Immer Kalender-Modus als Standard setzen
+    DOM.calendarMode.classList.remove('hidden');
+  DOM.wheelMode.classList.add('hidden');
+   DOM.btnCalendar.classList.add('active');
+DOM.btnWheel.classList.remove('active');
+
+        if (!DOM.startDate.value) {
+ const today = new Date();
+    DOM.startDate.valueAsDate = today;
+ }
+
+  generateSchedule();
+       
+ // Event Listener für Prefix-Feld hinzufügen (nur einmal)
+          if (!DOM.prefix.dataset.listenerAdded) {
+    DOM.prefix.addEventListener('input', updatePrefixWarning);
+      DOM.prefix.dataset.listenerAdded = 'true';
+       }
+    } else {
+  DOM.dateSelectionToggle.classList.add('hidden');
+      DOM.calendarMode.classList.add('hidden');
+  DOM.wheelMode.classList.add('hidden');
+ DOM.previewSection.classList.add('hidden');
+     DOM.zeitplan.classList.add('hidden');
+        }
+ }
+
+    function switchDateMode(mode) {
+if (mode === 'calendar') {
+         DOM.calendarMode.classList.remove('hidden');
+         DOM.wheelMode.classList.add('hidden');
+   DOM.btnCalendar.classList.add('active');
+   DOM.btnWheel.classList.remove('active');
+    
+      generateSchedule();
+ } else {
+       DOM.calendarMode.classList.add('hidden');
+   DOM.wheelMode.classList.remove('hidden');
+ DOM.btnCalendar.classList.remove('active');
+    DOM.btnWheel.classList.add('active');
+    
+       // Drehscheibe aktualisieren
+   drawWheel();
+       updateWheelCalculation();
+   
+      generateSchedule();
+   }
+    }
+
+ /* ===== DATUM FORMATIERUNG (Optimierung #17) ===== */
+  function formatDateLong(date) {
+    const dayName = WEEKDAYS[date.getDay()];
+  const day = date.getDate();
+   const monthName = MONTHS[date.getMonth()];
+     // Datum ausgeben
+ return `${dayName} ${day}. ${monthName}:`;
+    }
+
+    function formatDateShort(date) {
+     const dayName = WEEKDAYS[date.getDay()];
+  return date.toLocaleDateString('de-DE') + " (" + dayName + ")";
+    }
+
+    function formatDateISO(date) {
+return date.toISOString().split('T')[0].replace(/-/g, '');
+}
 
     /* ===== ZEITPLAN GENERIERUNG ===== */
     function generateSchedule() {
@@ -282,25 +409,76 @@ Feedback ist immer willkomen. -->
 
    downloadFileName = `${year}_${state.prefix ? state.prefix + '_' : ''}${state.scheduleType}-Zeitplan`;
 
-     scheduleData = createScheduleData(
-    state.scheduleType,
-    selectedDate,
-    state.steps
-);
+     scheduleData = createScheduleData(state.scheduleType, selectedDate, state.steps);
 
-        renderList('previewList', scheduleData, false, taskCheckboxStates);
+        renderList('previewList', false);
    DOM.previewSection.classList.remove('hidden');
     DOM.zeitplan.classList.add('hidden');
     }
 
+ /* ===== LISTEN RENDERING (Optimierung #4) ===== */
+    function renderList(listId, withCheckboxes) {
+  const list = document.getElementById(listId);
+  list.innerHTML = '';
 
+   scheduleData.forEach(({ dateFormatted, task }, index) => {
+     const listItem = document.createElement('li');
 
+  if (withCheckboxes) {
+      const checkbox = document.createElement('input');
+   checkbox.type = 'checkbox';
+    checkbox.checked = taskCheckboxStates[index];
+   checkbox.className = 'checkbox';
+            checkbox.addEventListener('change', function() {
+   taskCheckboxStates[index] = this.checked;
+      });
+       listItem.appendChild(checkbox);
+  }
+
+        const dateSpan = document.createElement('strong');
+    dateSpan.textContent = dateFormatted;
+  
+    const taskSpan = document.createElement('span');
+    taskSpan.textContent = task;
+
+      if (withCheckboxes) {
+  // Wrapper-Div für Einrückung
+     const wrapper = document.createElement('div');
+    wrapper.classList.add('task-indent');
+       wrapper.appendChild(dateSpan);
+   wrapper.appendChild(taskSpan);
+  listItem.appendChild(wrapper);
+  } else {
+       // Ohne Wrapper - direkt anhängen
+   listItem.appendChild(dateSpan);
+listItem.appendChild(taskSpan);
+     }
+
+ list.appendChild(listItem);
+   });
+     
+  // Prefix-Warnung anzeigen/verstecken (nur in der Vorschau)
+ if (listId === 'previewList') {
+ updatePrefixWarning();
+    }
+  }
+
+    function updatePrefixWarning() {
+  const noPrefixWarning = DOM.noPrefixWarning;
+   if (!noPrefixWarning) return;
+   
+ if (DOM.prefix.value.trim() === '') {
+            noPrefixWarning.classList.remove('hidden');
+ } else {
+  noPrefixWarning.classList.add('hidden');
+        }
+    }
 
     function showFinalSchedule() {
         // Checkbox-Zustände initialisieren (alle auf true)
     taskCheckboxStates = scheduleData.map(() => true);
   
-        renderList('scheduleList', scheduleData, true, taskCheckboxStates);
+        renderList('scheduleList', true);
         DOM.zeitplanTitle2.textContent = DOM.zeitplanTitle.textContent;
         
         // Erinnerungs-Sektion anzeigen
@@ -321,91 +499,107 @@ Feedback ist immer willkomen. -->
  DOM.zeitplan.classList.remove('hidden');
     }
 
-    /* ===== Beschreibungen anzeigen ===== */
-    function toggleDescriptionsMode() {
-    descriptionsVisible = !descriptionsVisible;
-
-    const btn = document.getElementById('toggleDescriptionsBtn');
-    btn.textContent = descriptionsVisible
-        ? '📝 Beschreibungen ausblenden'
-        : '📝 Beschreibungen anzeigen';
-
-    btn.classList.toggle('active', descriptionsVisible);
-
-    // neu rendern, damit es sofort sichtbar wird
-    renderList('scheduleList', scheduleData, true, taskCheckboxStates);
-}
-
     /* ===== EXPERTENMODUS ===== */
     function toggleExpertMode() {
-    expertModeActive = !expertModeActive;
-
-    if (expertModeActive) {
-        DOM.expertModeBtn.textContent = '✅ Expertenmodus aktiv';
-        DOM.expertModeBtn.classList.add('active');
-        DOM.expertModeHint.classList.remove('hidden');
-    } else {
-        DOM.expertModeBtn.textContent = '🔧 Expertenmodus';
-        DOM.expertModeBtn.classList.remove('active');
-        DOM.expertModeHint.classList.add('hidden');
+        expertModeActive = !expertModeActive;
+ 
+   if (expertModeActive) {
+  DOM.expertModeBtn.textContent = '✅ Expertenmodus aktiv';
+    DOM.expertModeBtn.classList.add('active');
+  DOM.expertModeHint.classList.remove('hidden');
+    makeListEditable();
+     } else {
+          DOM.expertModeBtn.textContent = '🔧 Expertenmodus';
+ DOM.expertModeBtn.classList.remove('active');
+    DOM.expertModeHint.classList.add('hidden');
+       renderList('scheduleList', true);
+   }
+        
+ updateReminderSectionVisibility();
     }
 
-    // 🔥 IMMER neu rendern – das ist der Schlüssel
-    renderList('scheduleList', scheduleData, true, taskCheckboxStates);
-}
-
-function makeDescriptionEditable(descEl, index) {
-    const input = document.createElement('textarea');
-    input.value = scheduleData[index].additionalText || '';
-    input.className = 'expert-input expert-desc';
-    input.style.width = '100%';
-    input.style.minHeight = '60px';
-
-    input.addEventListener('blur', function () {
-    scheduleData[index].additionalText = this.value;
-
-    const newDiv = document.createElement('div');
-    newDiv.className = 'schedule-desc';
-    newDiv.textContent = this.value;
-
-    if (expertModeActive) {
-        newDiv.style.cursor = 'pointer';
-        newDiv.onclick = () => makeDescriptionEditable(newDiv, index);
-    }
-
-    this.replaceWith(newDiv);
-});
-
-    input.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' && e.ctrlKey) {
-            this.blur();
+    function updateReminderSectionVisibility() {
+      const labels = DOM.reminderSection.querySelectorAll('.reminder-options label');
+        
+ // Prüfen ob irgendeine Erinnerung aktiv ist
+      const hasActiveReminders = window.reminderStates.some(state => state === true);
+      
+   if (!hasActiveReminders && !expertModeActive) {
+         // Keine Erinnerungen aktiv und Expertenmodus aus → Sektion verstecken
+   DOM.reminderSection.classList.add('hidden');
+  return;
         }
+        
+  // Sektion anzeigen
+        DOM.reminderSection.classList.remove('hidden');
+      
+labels.forEach((label, index) => {
+       const checkbox = label.querySelector('input[type="checkbox"]');
+const span = label.querySelector('span');
+            
+     if (expertModeActive) {
+         // Expertenmodus AN: Alle Checkboxen anzeigen (editierbar)
+label.style.display = 'flex';
+label.classList.remove('disabled');
+           
+      if (checkbox) {
+   checkbox.checked = window.reminderStates[index];
+      checkbox.disabled = false;
+checkbox.style.display = 'inline-block';
+      }
+          
+      // Original-HTML wiederherstellen falls nötig
+  if (!checkbox) {
+            const newCheckbox = document.createElement('input');
+      newCheckbox.type = 'checkbox';
+            newCheckbox.value = ['-PT1H', '-PT3H', '-P1D', '-P2D', '-P1W'][index];
+ newCheckbox.checked = window.reminderStates[index];
+            
+     label.innerHTML = '';
+        label.appendChild(newCheckbox);
+         label.appendChild(span.cloneNode(true));
+    
+            // Event Listener neu hinzufügen
+     newCheckbox.addEventListener('change', function() {
+                window.reminderStates[index] = this.checked;
+          });
+  }
+} else {
+     // Expertenmodus AUS: Nur angehakte als Text anzeigen
+        if (window.reminderStates[index]) {
+      label.style.display = 'block';
+  label.classList.add('disabled');
+          // Nur Text anzeigen (ohne Checkbox)
+        label.innerHTML = `<span>${span.textContent}</span>`;
+    } else {
+   label.style.display = 'none';
+      }
+  }
     });
+    }
 
-    descEl.replaceWith(input);
-    input.focus();
-}
+    function makeListEditable() {
+ const listItems = DOM.scheduleList.querySelectorAll('li');
+        
+listItems.forEach((li, index) => {
+         const wrapper = li.querySelector('.task-indent');
 
-
-
-//     function makeListEditable() {
-//   const items = DOM.scheduleList.querySelectorAll('.schedule-main');
-//
-//   items.forEach((main, index) => {
-//     const strong = main.querySelector('strong');
-//     const span = main.querySelector('span');
-//
-//     if (strong) {
-//       strong.style.cursor = 'pointer';
-//       strong.onclick = () => makeDateEditable(strong, index);
-//     }
-//
-//     if (span) {
-//       span.style.cursor = 'pointer';
-//       span.onclick = () => makeTaskEditable(span, index);
-//     }
-//   });
-// }
+        if (wrapper) {
+ const strong = wrapper.querySelector('strong');
+        const taskSpan = wrapper.querySelector('span');
+   
+     if (strong) {
+  strong.style.cursor = 'pointer';
+     strong.onclick = () => makeDateEditable(strong, index);
+      }
+        
+    if (taskSpan) {
+  taskSpan.style.cursor = 'pointer';
+      taskSpan.onclick = () => makeTaskEditable(taskSpan, index);
+ }
+  }
+ });
+ }
 
   function makeDateEditable(strong, index) {
   const dateText = strong.textContent.trim();
@@ -470,9 +664,6 @@ if (e.key === 'Enter') {
 input.type = 'text';
     input.value = taskSpan.textContent.trim();
   input.className = 'expert-input expert-task';
-  input.style.flex = '1';
-input.style.minWidth = '0';
-input.style.boxSizing = 'border-box';
         
  input.addEventListener('blur', function() {
    scheduleData[index].task = this.value;
@@ -516,7 +707,7 @@ expertModeActive = false;
     DOM.dateChangedWarning.classList.add('hidden');
         
   // Zeitplan neu generieren, um Original-Daten wiederherzustellen
-  renderList('scheduleList', scheduleData, true, taskCheckboxStates);
+  generateSchedule();
    
   DOM.generalForm.classList.remove('hidden');
       DOM.previewSection.classList.remove('hidden');
@@ -570,13 +761,23 @@ expertModeActive = false;
       }
  }
 
-window.populateSteps = populateSteps;
-window.onStepSelected = onStepSelected;
-window.switchDateMode = switchDateMode;
-window.generateSchedule = generateSchedule;
-window.goToFinalPage = goToFinalPage;
-window.goBackToPreview = goBackToPreview;
-window.toggleExpertMode = toggleExpertMode;
+    function createScheduleData(scheduleType, startDate, selectedStep) {
+    const baseDate = new Date(startDate);
+        baseDate.setDate(baseDate.getDate() - selectedStep);
+
+        return schedules[scheduleType].map(item => {
+        const taskDate = new Date(baseDate);
+  taskDate.setDate(taskDate.getDate() + item.offset);
+
+    return {
+  taskDate,
+     task: item.task,
+     additionalText: item.additionalText,
+ dateFormatted: formatDateLong(taskDate),
+    dateShort: formatDateShort(taskDate)
+     };
+});
+    }
 </script>
 </body>
 </html>
